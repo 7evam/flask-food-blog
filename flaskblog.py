@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, flash, redirect
 from forms import RegistrationForm, LoginForm
 app = Flask(__name__)
 
@@ -28,22 +28,32 @@ posts = [
 # @ is a decorator
 @app.route("/")
 @app.route("/home")
-def hello():
+def home():
     return render_template('home.html', posts=posts)
 
 @app.route("/about")
 def about():
     return render_template('about.html', title='About')
 
-@app.route("/register")
+@app.route("/register", methods=['GET','POST'])
 def register():
     form = RegistrationForm()
-    # return render_template('about.html', title='About')
+    if form.validate_on_submit():
+        flash("Account created for {person}!".format(person = form.username.data), 'success')
+        return redirect(url_for('home'))
     return render_template('register.html', title='Register', form=form)
 
-@app.route("/login")
+@app.route("/login", methods=['GET','POST'])
 def login():
     form = LoginForm()
+    if form.validate_on_submit():
+        if form.email.data == 'admin@blog.com' and form.password.data == 'password':
+            # second arg is bootstrap class
+            flash('you have been logged in!','success')
+            return redirect (url_for('home'))
+        else:
+            flash('Login unsuccessful, please check username and password','danger')
+            # no need to return, returning login below is good enough
     return render_template('login.html', title='Login', form=form)
 
 if __name__ == '__main__':
